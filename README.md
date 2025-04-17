@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# 📚 Dictionary App
 
-First, run the development server:
+A modern, responsive, and accessible **Dictionary App** built with **Next.js**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**. It supports real-time word search, suggestions, pronunciation playback, keyboard navigation, and elegant animations — all wrapped in a world-class UI/UX experience.
+
+![Dictionary App Banner](./public/banner.png)
+
+## 🚀 Features
+
+- 🔍 Live Search with Suggestions (powered by [Datamuse API](https://www.datamuse.com/api/))
+- 🔊 Pronunciation Playback (for searched words)
+- ⌨️ Keyboard Navigation (Arrow Up/Down + Enter key support)
+- 🎨 Fully Responsive UI (mobile-first, optimized for all screen sizes)
+- 🌗 Dark Mode Support
+- ⚡️ Animations with Framer Motion
+- ✅ Accessibility Best Practices
+- 🛠️ Built with modern technologies: Next.js (App Router), TypeScript, Tailwind CSS, Zustand (for state)
+
+## 📦 Tech Stack
+
+- **Framework**: [Next.js](https://nextjs.org/)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Animation**: Framer Motion
+- **State Management**: Zustand
+- **APIs Used**:
+  - [Datamuse API](https://www.datamuse.com/api/) for suggestions
+  - [Dictionary API](https://dictionaryapi.dev/) or [WordsAPI](https://www.wordsapi.com/) for definitions and audio
+
+## 🖼️ Demo
+
+Live Demo: [https://your-deployed-link.com](https://your-deployed-link.com)
+
+## 📁 Project Structure
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+📦 dictionary-app
+├── app/               # Next.js App Router pages
+│   ├── components/    # Reusable UI components
+│   ├── styles/        # Global styles
+│   └── layout.tsx     # Root layout
+├── public/            # Static assets
+├── types/             # TypeScript types
+├── utils/             # Utility functions
+├── store/             # Zustand store
+├── tailwind.config.ts
+├── tsconfig.json
+└── README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📦 Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Clone the repo
+git clone https://github.com/your-username/dictionary-app.git
+cd dictionary-app
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Install dependencies
+npm install
 
-## Learn More
+# Run the development server
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ⚙️ Environment Setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If you use APIs that require a key, add your environment variables in `.env.local`:
 
-## Deploy on Vercel
+```env
+NEXT_PUBLIC_API_URL=your_api_url
+NEXT_PUBLIC_API_KEY=your_api_key
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧠 Key Features Breakdown
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 🔠 Search Bar
+
+- Debounced search with live API suggestions
+- Arrow Up/Down + Enter for keyboard selection
+- Mouse click support for suggestion selection
+- Voice icon for pronunciation playback
+
+### 📖 Word Details
+
+- Definition, part of speech, and usage examples
+- Audio pronunciation with fallback
+- Smooth animations via Framer Motion
+
+## 🎨 Customization
+
+You can modify:
+
+- API sources and response formats
+- Colors in `tailwind.config.ts`
+- Motion effects in components using [Framer Motion docs](https://www.framer.com/motion/)
+
+## 🧪 Development Scripts
+
+| Command         | Description                    |
+|----------------|--------------------------------|
+| `npm run dev`  | Start development server       |
+| `npm run build`| Build the app for production   |
+| `npm run start`| Start the production server    |
+| `npm run lint` | Run ESLint checks              |
+
+## 🛡️ License
+
+Licensed under the [MIT License](LICENSE).
+
+## 🙌 Acknowledgements
+
+- [Datamuse API](https://www.datamuse.com/api/)
+- [Dictionary API](https://dictionaryapi.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Framer Motion](https://www.framer.com/motion/)
+- [Next.js](https://nextjs.org/)
+- [Zustand](https://github.com/pmndrs/zustand)
+
+## 💡 Future Improvements
+
+- Add word history
+- Add light/dark mode toggle
+- Bookmark or favorite words
+- Offline caching
+- Synonym and antonym suggestions
+
+---
+
+✅ **Lint fixes included:**
+
+- ❌ No duplicate headings (`MD024`)
+- ❌ Only one `#` top-level heading (`MD025`)
+- ✅ Language added to fenced blocks (`MD040`)
+- ✅ Blank lines added around lists (`MD032`)
+- ✅ Ends with one newline only (`MD047`)
