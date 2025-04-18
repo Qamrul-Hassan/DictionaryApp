@@ -96,7 +96,7 @@ const SearchBar = ({
           onKeyDown={handleKeyDown}
         />
         {/* Adjusted icons for small screens */}
-        <div className="flex items-center gap-1 sm:gap-2 ml-1 sm:ml-2">
+        <div className="flex items-center gap-2 sm:gap-1 ml-1 sm:ml-2">
           <button
             className="flex items-center justify-center text-base sm:text-xl text-red-600 dark:text-blue-300 hover:text-blue-800 rounded-full"
             onClick={onPlaySound}
@@ -104,7 +104,7 @@ const SearchBar = ({
             <FaVolumeUp />
           </button>
           <button
-            className="flex items-center justify-center text-sm sm:text-base bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-2 sm:px-3 py-1.5 sm:py-2"
+            className="flex items-center justify-center text-md sm:text-base bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-2 sm:px-3 py-1.5 sm:py-2"
             onClick={() => {
               if (input.trim()) {
                 onSearch(input.trim());

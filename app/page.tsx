@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import SearchBar from './components/SearchBar';
 import WordResult from './components/WordResult';
 import { motion } from 'framer-motion';
@@ -12,6 +12,40 @@ export default function Page() {
   const [definition, setDefinition] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // For the falling words animation with random positions and 3D effect
+  useEffect(() => {
+    const words = ['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon'];
+    const container = document.getElementById('falling-words');
+
+    const createFallingWords = () => {
+      const wordElement = document.createElement('div');
+      wordElement.textContent = words[Math.floor(Math.random() * words.length)];
+      wordElement.classList.add('falling-word');
+      
+      // Set random initial positions for each word
+      const randomX = Math.floor(Math.random() * 100) + '%'; // Random X position
+      const randomDelay = Math.random() * 2 + 's'; // Random delay for each word's animation start
+      const randomRotation = Math.floor(Math.random() * 360) + 'deg'; // Random rotation angle
+      const randomScale = Math.random() * 0.5 + 0.5; // Random scale for 3D effect
+      const randomColor = `hsl(${Math.random() * 360}, 100%, 75%)`; // Random color for more vibrancy
+
+      wordElement.style.left = randomX;
+      wordElement.style.animationDelay = randomDelay;
+      wordElement.style.transform = `rotate(${randomRotation}) scale(${randomScale})`;
+      wordElement.style.color = randomColor;
+
+      container?.appendChild(wordElement);
+
+      setTimeout(() => {
+        wordElement.remove();
+      }, 6000); // Remove the word after it finishes falling
+    };
+
+    const intervalId = setInterval(createFallingWords, 300); // Make it faster for more "rain"
+
+    return () => clearInterval(intervalId); // Clean up interval on unmount
+  }, []);
 
   const fetchDefinition = useCallback(async (word: string) => {
     if (!word.trim()) return;
@@ -59,9 +93,12 @@ export default function Page() {
   }, []);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 p-6">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-600 dark:from-indigo-900 dark:to-indigo-800 p-6 relative overflow-hidden">
+      {/* Background falling words container */}
+      <div id="falling-words" className="absolute inset-0 pointer-events-none z-0"></div>
+
       <motion.h1
-        className="text-4xl font-bold text-blue-900 dark:text-blue-200 mb-6"
+        className="text-5xl font-bold text-white mb-6 z-10 relative"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6 }}
@@ -78,13 +115,13 @@ export default function Page() {
       />
 
       {isLoading && (
-        <div className="mt-6 p-4 text-blue-700 dark:text-blue-300">
+        <div className="mt-6 p-4 text-blue-700 dark:text-blue-300 z-10 relative">
           Loading...
         </div>
       )}
 
       {error && (
-        <div className="mt-6 p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
+        <div className="mt-6 p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg z-10 relative">
           {error}
         </div>
       )}
@@ -93,7 +130,7 @@ export default function Page() {
 
       {definition && !error && (
         <motion.div
-          className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl mt-6 max-w-xl text-center text-lg"
+          className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl mt-6 max-w-xl text-center text-lg z-10 relative"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
