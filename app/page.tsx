@@ -58,9 +58,12 @@ export default function Page() {
 
       container?.appendChild(wordElement);
 
+      // Animation for bursting effect
+      wordElement.style.animation = `burstEffect 1s forwards`;
+
       setTimeout(() => {
         wordElement.remove();
-      }, 6000); // Remove the word after it finishes bursting
+      }, 1500); // Remove the word after the burst effect finishes
     };
 
     const intervalId = setInterval(createFireworks, 500); // Make it faster for more "fireworks"

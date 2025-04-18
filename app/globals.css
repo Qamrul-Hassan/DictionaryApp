@@ -1,3 +1,4 @@
+/* Import Tailwind CSS */
 @import "tailwindcss";
 @import "tailwindcss/preflight" layer(base);
 @import "tailwindcss/utilities" layer(utilities);
@@ -18,4 +19,27 @@ body {
   background: rgb(var(--background));
   color: rgb(var(--foreground));
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Fireworks Burst Effect */
+@keyframes burstEffect {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(3); /* Scaling up to make the burst effect */
+  }
+  100% {
+    opacity: 0;
+    transform: scale(5); /* Making it bigger before disappearing */
+  }
+}
+
+.firework-word {
+  position: absolute;
+  font-size: 24px;
+  animation: burstEffect 1s forwards;
+  pointer-events: none; /* Prevent any interaction */
 }
