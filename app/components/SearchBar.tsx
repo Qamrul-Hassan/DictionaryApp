@@ -34,7 +34,6 @@ const SearchBar = ({
     setInput(value);
     setShowSuggestions(true);
 
-    // Fetch suggestions (basic logic)
     if (value.length > 0) {
       fetch(`https://api.datamuse.com/sug?s=${value}`)
         .then((res) => res.json())
@@ -86,35 +85,38 @@ const SearchBar = ({
 
   return (
     <div className="w-full max-w-xl relative">
-      <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-full shadow-md overflow-hidden px-3 sm:px-4 py-2 sm:py-3">
+      <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-full shadow-md overflow-hidden px-3 py-2 sm:px-4 sm:py-3">
         <input
           ref={inputRef}
           type="text"
-          className="flex-grow text-2xl sm:text-base px-3 sm:px-4 py-2 sm:py-3 text-gray-800 dark:text-white bg-transparent outline-none"
+          className="flex-grow text-base sm:text-lg px-3 py-2 text-gray-800 dark:text-white bg-transparent outline-none"
           placeholder="Type a word..."
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
         />
-        <button
-          className="text-lg sm:text-xl px-3 py-2 sm:px-4 sm:py-3 text-red-600 dark:text-blue-300 hover:text-blue-800 rounded-full"
-          onClick={onPlaySound}
-        >
-          <FaVolumeUp />
-        </button>
-        <button
-          className="text-lg sm:text-xl px-3 py-2 sm:px-4 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full"
-          onClick={() => {
-            if (input.trim()) {
-              onSearch(input.trim());
-              setShowSuggestions(false);
-              setSuggestions([]);
-            }
-          }}
-          disabled={isLoading}
-        >
-          <FaSearch />
-        </button>
+        {/* Adjusted icons for small screens */}
+        <div className="flex items-center gap-1 sm:gap-2 ml-1 sm:ml-2">
+          <button
+            className="flex items-center justify-center text-base sm:text-xl text-red-600 dark:text-blue-300 hover:text-blue-800 rounded-full"
+            onClick={onPlaySound}
+          >
+            <FaVolumeUp />
+          </button>
+          <button
+            className="flex items-center justify-center text-sm sm:text-base bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-2 sm:px-3 py-1.5 sm:py-2"
+            onClick={() => {
+              if (input.trim()) {
+                onSearch(input.trim());
+                setShowSuggestions(false);
+                setSuggestions([]);
+              }
+            }}
+            disabled={isLoading}
+          >
+            <FaSearch />
+          </button>
+        </div>
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
