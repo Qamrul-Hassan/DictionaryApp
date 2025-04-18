@@ -12,9 +12,8 @@ export default function Page() {
   const [definition, setDefinition] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const resultRef = useRef<HTMLDivElement | null>(null); // Reference for scrolling result container
+  const resultRef = useRef<HTMLDivElement | null>(null);
 
-  // To keep track of scroll position
   const scrollToResult = useCallback(() => {
     requestAnimationFrame(() => {
       setTimeout(() => {
@@ -22,31 +21,36 @@ export default function Page() {
           const topOffset = resultRef.current.getBoundingClientRect().top + window.scrollY;
           const currentScroll = window.scrollY;
 
-          // Only scroll if user hasn't already scrolled past the result
           if (Math.abs(currentScroll - topOffset) > 100) {
             resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }
-      }, 100); // slight delay to ensure layout is rendered
+      }, 100);
     });
   }, []);
 
   useEffect(() => {
-    const words = ['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon'];
+    const dictionaryWords = [
+      'ephemeral', 'serendipity', 'melancholy', 'ineffable', 'sonder', 'limerence',
+      'solitude', 'sonder', 'ethereal', 'labyrinth', 'eloquence', 'sonder', 'mellifluous',
+      'sonder', 'effervescent', 'sonder', 'epiphany', 'sonder', 'resilience', 'sonder',
+      'sonder', 'sonder', 'sonder', 'sonder', 'sonder', 'sonder', 'sonder', 'sonder'
+    ];
+
     const container = document.getElementById('fireworks-container');
 
     const createFireworks = () => {
       const wordElement = document.createElement('div');
-      wordElement.textContent = words[Math.floor(Math.random() * words.length)];
+      const word = dictionaryWords[Math.floor(Math.random() * dictionaryWords.length)];
+      wordElement.textContent = word;
       wordElement.classList.add('firework-word');
 
-      // Set random initial positions for each word
-      const randomX = Math.floor(Math.random() * window.innerWidth) + 'px'; // Random X position
-      const randomY = Math.floor(Math.random() * window.innerHeight) + 'px'; // Random Y position
-      const randomDelay = Math.random() * 2 + 's'; // Random delay for each word's animation start
-      const randomRotation = Math.floor(Math.random() * 360) + 'deg'; // Random rotation angle
-      const randomScale = Math.random() * 0.5 + 0.5; // Random scale for 3D effect
-      const randomColor = `hsl(${Math.random() * 360}, 100%, 75%)`; // Random color for more vibrancy
+      const randomX = Math.floor(Math.random() * window.innerWidth) + 'px';
+      const randomY = Math.floor(Math.random() * window.innerHeight) + 'px';
+      const randomDelay = Math.random() * 1 + 's';
+      const randomRotation = Math.floor(Math.random() * 360) + 'deg';
+      const randomScale = Math.random() * 0.5 + 0.8;
+      const randomColor = `hsl(${Math.random() * 360}, 100%, 75%)`;
 
       wordElement.style.left = randomX;
       wordElement.style.top = randomY;
@@ -55,20 +59,21 @@ export default function Page() {
       wordElement.style.color = randomColor;
       wordElement.style.position = 'absolute';
       wordElement.style.fontSize = '24px';
+      wordElement.style.pointerEvents = 'none';
+      wordElement.style.whiteSpace = 'nowrap';
+
+      wordElement.style.animation = `burstEffect 1.5s ease-out forwards`;
 
       container?.appendChild(wordElement);
 
-      // Animation for bursting effect
-      wordElement.style.animation = `burstEffect 1s forwards`;
-
       setTimeout(() => {
         wordElement.remove();
-      }, 1500); // Remove the word after the burst effect finishes
+      }, 2000);
     };
 
-    const intervalId = setInterval(createFireworks, 500); // Make it faster for more "fireworks"
+    const intervalId = setInterval(createFireworks, 200); // more frequent bursts
 
-    return () => clearInterval(intervalId); // Clean up interval on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchDefinition = useCallback(async (word: string) => {
@@ -101,7 +106,6 @@ export default function Page() {
         audioRef.current = new Audio(audioUrl);
       }
 
-      // Scroll to the result
       scrollToResult();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -121,13 +125,10 @@ export default function Page() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-600 dark:from-indigo-900 dark:to-indigo-800 p-6 relative overflow-hidden">
-      {/* Background Fireworks container */}
-      <div
-        id="fireworks-container"
-        className="absolute inset-0 pointer-events-none z-0"
-      ></div>
+      {/* Firework background */}
+      <div id="fireworks-container" className="absolute inset-0 pointer-events-none z-0" />
 
-      {/* Title */}
+      {/* Heading */}
       <motion.h1
         className="text-5xl font-bold text-white mb-6 z-10 relative"
         initial={{ opacity: 0, y: -20 }}
@@ -137,7 +138,7 @@ export default function Page() {
         📖 Smart Dictionary
       </motion.h1>
 
-      {/* Search Bar */}
+      {/* Search */}
       <div className="w-full flex justify-center z-10 relative">
         <SearchBar
           onSearch={fetchDefinition}
@@ -149,9 +150,7 @@ export default function Page() {
       </div>
 
       {isLoading && (
-        <div className="mt-6 p-4 text-blue-700 dark:text-blue-300 z-10 relative">
-          Loading...
-        </div>
+        <div className="mt-6 p-4 text-blue-700 dark:text-blue-300 z-10 relative">Loading...</div>
       )}
 
       {error && (
@@ -165,7 +164,7 @@ export default function Page() {
       {definition && !error && (
         <motion.div
           className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl mt-6 max-w-xl text-center text-lg z-10 relative w-full sm:w-11/12 md:w-3/4 lg:w-1/2"
-          ref={resultRef} // Attach the ref to the result container
+          ref={resultRef}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
