@@ -106,13 +106,16 @@ export default function Page() {
         📖 Smart Dictionary
       </motion.h1>
 
-      <SearchBar
-        onSearch={fetchDefinition}
-        suggestions={suggestions}
-        onPlaySound={playSound}
-        isLoading={isLoading}
-        setSuggestions={setSuggestions}
-      />
+      {/* Search bar container with responsive layout */}
+      <div className="w-full flex justify-center z-10 relative">
+        <SearchBar
+          onSearch={fetchDefinition}
+          suggestions={suggestions}
+          onPlaySound={playSound}
+          isLoading={isLoading}
+          setSuggestions={setSuggestions}
+        />
+      </div>
 
       {isLoading && (
         <div className="mt-6 p-4 text-blue-700 dark:text-blue-300 z-10 relative">
@@ -130,7 +133,7 @@ export default function Page() {
 
       {definition && !error && (
         <motion.div
-          className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl mt-6 max-w-xl text-center text-lg z-10 relative"
+          className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl mt-6 max-w-xl text-center text-lg z-10 relative w-full sm:w-11/12 md:w-3/4 lg:w-1/2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
