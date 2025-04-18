@@ -16,40 +16,54 @@ export default function Page() {
 
   // To keep track of scroll position
   const scrollToResult = useCallback(() => {
-    if (resultRef.current) {
-      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (resultRef.current) {
+          const topOffset = resultRef.current.getBoundingClientRect().top + window.scrollY;
+          const currentScroll = window.scrollY;
+
+          // Only scroll if user hasn't already scrolled past the result
+          if (Math.abs(currentScroll - topOffset) > 100) {
+            resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 100); // slight delay to ensure layout is rendered
+    });
   }, []);
 
   useEffect(() => {
     const words = ['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon'];
-    const container = document.getElementById('falling-words');
+    const container = document.getElementById('fireworks-container');
 
-    const createFallingWords = () => {
+    const createFireworks = () => {
       const wordElement = document.createElement('div');
       wordElement.textContent = words[Math.floor(Math.random() * words.length)];
-      wordElement.classList.add('falling-word');
-      
+      wordElement.classList.add('firework-word');
+
       // Set random initial positions for each word
-      const randomX = Math.floor(Math.random() * 100) + '%'; // Random X position
+      const randomX = Math.floor(Math.random() * window.innerWidth) + 'px'; // Random X position
+      const randomY = Math.floor(Math.random() * window.innerHeight) + 'px'; // Random Y position
       const randomDelay = Math.random() * 2 + 's'; // Random delay for each word's animation start
       const randomRotation = Math.floor(Math.random() * 360) + 'deg'; // Random rotation angle
       const randomScale = Math.random() * 0.5 + 0.5; // Random scale for 3D effect
       const randomColor = `hsl(${Math.random() * 360}, 100%, 75%)`; // Random color for more vibrancy
 
       wordElement.style.left = randomX;
+      wordElement.style.top = randomY;
       wordElement.style.animationDelay = randomDelay;
       wordElement.style.transform = `rotate(${randomRotation}) scale(${randomScale})`;
       wordElement.style.color = randomColor;
+      wordElement.style.position = 'absolute';
+      wordElement.style.fontSize = '24px';
 
       container?.appendChild(wordElement);
 
       setTimeout(() => {
         wordElement.remove();
-      }, 6000); // Remove the word after it finishes falling
+      }, 6000); // Remove the word after it finishes bursting
     };
 
-    const intervalId = setInterval(createFallingWords, 300); // Make it faster for more "rain"
+    const intervalId = setInterval(createFireworks, 500); // Make it faster for more "fireworks"
 
     return () => clearInterval(intervalId); // Clean up interval on unmount
   }, []);
@@ -104,9 +118,13 @@ export default function Page() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-600 dark:from-indigo-900 dark:to-indigo-800 p-6 relative overflow-hidden">
-      {/* Background falling words container */}
-      <div id="falling-words" className="absolute inset-0 pointer-events-none z-0"></div>
+      {/* Background Fireworks container */}
+      <div
+        id="fireworks-container"
+        className="absolute inset-0 pointer-events-none z-0"
+      ></div>
 
+      {/* Title */}
       <motion.h1
         className="text-5xl font-bold text-white mb-6 z-10 relative"
         initial={{ opacity: 0, y: -20 }}
@@ -116,7 +134,7 @@ export default function Page() {
         📖 Smart Dictionary
       </motion.h1>
 
-      {/* Search bar container with responsive layout */}
+      {/* Search Bar */}
       <div className="w-full flex justify-center z-10 relative">
         <SearchBar
           onSearch={fetchDefinition}
