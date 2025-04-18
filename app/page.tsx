@@ -12,8 +12,15 @@ export default function Page() {
   const [definition, setDefinition] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const resultRef = useRef<HTMLDivElement | null>(null); // Reference for scrolling result container
 
-  // For the falling words animation with random positions and 3D effect
+  // To keep track of scroll position
+  const scrollToResult = useCallback(() => {
+    if (resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   useEffect(() => {
     const words = ['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon'];
     const container = document.getElementById('falling-words');
@@ -76,6 +83,9 @@ export default function Page() {
       if (audioUrl) {
         audioRef.current = new Audio(audioUrl);
       }
+
+      // Scroll to the result
+      scrollToResult();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       setError(message);
@@ -83,7 +93,7 @@ export default function Page() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [scrollToResult]);
 
   const playSound = useCallback(() => {
     audioRef.current?.play().catch((e) => {
@@ -134,6 +144,7 @@ export default function Page() {
       {definition && !error && (
         <motion.div
           className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl mt-6 max-w-xl text-center text-lg z-10 relative w-full sm:w-11/12 md:w-3/4 lg:w-1/2"
+          ref={resultRef} // Attach the ref to the result container
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
