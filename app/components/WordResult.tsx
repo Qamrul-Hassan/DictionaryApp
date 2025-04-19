@@ -1,13 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
-interface Definition {
+interface Phonetic {
+  text?: string;
+  audio?: string;
+  region?: 'USA' | 'UK' | 'Australia';
+}
+
+interface DefinitionDetail {
+  definition: string;
+  example?: string;
+}
+
+interface Meaning {
+  partOfSpeech: string;
+  definitions: DefinitionDetail[];
+}
+
+interface DictionaryEntry {
   word: string;
-  meanings: {
-    partOfSpeech: string;
-    definitions: {
-      definition: string;
-    }[];
-  }[];
+  phonetic?: string;
+  phonetics?: Phonetic[];
+  meanings: Meaning[];
 }
 
 interface WordResultProps {
@@ -16,63 +30,90 @@ interface WordResultProps {
 
 const WordResult: React.FC<WordResultProps> = ({ term }) => {
   const [debouncedTerm, setDebouncedTerm] = useState(term);
-  const [definition, setDefinition] = useState<Definition | null>(null);
+  const [entries, setEntries] = useState<DictionaryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Debounce logic
+  // Debounce the input term
   useEffect(() => {
-    const handler = setTimeout(() => {
+    const timer = setTimeout(() => {
       setDebouncedTerm(term);
-    }, 500); // 500ms delay
-
-    return () => clearTimeout(handler);
+    }, 500);
+    return () => clearTimeout(timer);
   }, [term]);
 
-  // Fetch word definition
+  // Fetch with Axios
   useEffect(() => {
-    if (debouncedTerm.trim().length < 3) return; // Don't fetch if term is too short
+    if (!debouncedTerm.trim() || debouncedTerm.trim().length < 2) return;
 
-    const fetchWord = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${debouncedTerm}`);
-        if (!response.ok) {
-          throw new Error('Word not found');
-        }
-        const data = await response.json();
-        setDefinition(data[0]); // Assuming API returns an array, use the first result
-        setError(null); // Clear any previous errors
+        const response = await axios.get<DictionaryEntry[]>(
+          `https://api.dictionaryapi.dev/api/v2/entries/en/${debouncedTerm}`
+        );
+        setEntries(response.data);
+        setError(null);
       } catch {
-        setDefinition(null); // Clear previous definitions
-        setError('Sorry, we couldn\'t find that word. Please try another.');
+        setEntries([]);
+        setError("Sorry, we couldn't find that word.");
       }
     };
 
-    fetchWord();
+    fetchData();
   }, [debouncedTerm]);
 
   return (
     <div className="word-result-container mt-8">
-      {error && (
-        <p className="text-red-500 mt-2 text-center">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-center">{error}</p>}
 
-      {definition && !error && (
-        <div className="word-definition p-4 border border-gray-300 dark:border-gray-600 rounded-xl shadow-5xl bg-amber-50 dark:bg-gray-800">
-          <h2 className="text-3xl font-extrabold text-blue-900 dark:text-blue-200 mb-4">{definition.word}</h2>
-          
-          <div className="definition mt-4">
-            <h3 className="text-xl font-semibold">Meaning:</h3>
-            {definition.meanings.map((meaning, index) => (
-              <div key={index} className="mt-2">
-                <p className="text-lg text-gray-700 dark:text-gray-300">{meaning.partOfSpeech}</p>
-                <ul className="list-disc ml-6 mt-2">
-                  {meaning.definitions.map((def, i) => (
-                    <li key={i} className="text-lg text-gray-700 dark:text-gray-300">{def.definition}</li>
-                  ))}
-                </ul>
+      {entries.length > 0 && (
+        <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-xl shadow bg-amber-50 dark:bg-gray-800">
+          <h2 className="text-3xl font-bold text-blue-900 dark:text-blue-200 mb-2 capitalize">
+            {entries[0].word}
+          </h2>
+
+          {/* Phonetics by Region */}
+          <div>
+            {entries[0].phonetics?.map((phon, i) => (
+              <div key={i} className="text-gray-600 dark:text-gray-300 text-lg mb-1 flex items-center space-x-2">
+                {phon.text && (
+                  <span className="flex items-center">
+                    /{phon.text}/ <span className="ml-2 text-sm text-gray-500">({phon.region || "General"})</span>
+                  </span>
+                )}
+                {phon.audio && (
+                  <audio controls src={phon.audio} className="h-6">
+                    Your browser does not support the audio element.
+                  </audio>
+                )}
               </div>
             ))}
           </div>
+
+          {/* Meanings */}
+          {entries.map((entry, entryIndex) => (
+            <div key={entryIndex}>
+              {entry.meanings.map((meaning, meaningIndex) => (
+                <div key={`${entryIndex}-${meaningIndex}`} className="mt-4">
+                  <p className="text-xl font-semibold text-purple-700 dark:text-purple-300 italic">
+                    {meaning.partOfSpeech}
+                  </p>
+
+                  <ul className="list-disc ml-6 mt-1 space-y-2">
+                    {meaning.definitions.map((def, defIndex) => (
+                      <li key={defIndex} className="text-gray-800 dark:text-gray-300">
+                        {def.definition}
+                        {def.example && (
+                          <p className="text-sm italic text-gray-500 dark:text-gray-400 mt-1">
+                            Example: {def.example}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       )}
     </div>
