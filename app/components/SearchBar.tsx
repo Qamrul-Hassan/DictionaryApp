@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  useState,
-  useRef,
-  KeyboardEvent,
-  Dispatch,
-  SetStateAction,
-} from 'react';
+import { useState, useRef, KeyboardEvent, Dispatch, SetStateAction } from 'react';
 import { FaSearch, FaVolumeUp } from 'react-icons/fa';
 
 interface SearchBarProps {
@@ -20,7 +14,6 @@ interface SearchBarProps {
 const SearchBar = ({
   onSearch,
   suggestions,
-  isLoading,
   onPlaySound,
   setSuggestions,
 }: SearchBarProps) => {
@@ -83,28 +76,20 @@ const SearchBar = ({
   return (
     <div className="w-full max-w-xl relative z-10">
       <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-full shadow-md overflow-hidden px-3 py-2 sm:px-4 sm:py-3">
-        <input
-          ref={inputRef}
-          type="text"
-          className="flex-grow text-base sm:text-lg px-3 py-2 text-gray-800 dark:text-white bg-transparent outline-none"
-          placeholder="Type a word..."
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-        />
-
-        <div className="flex items-center gap-2 ml-2">
-          {/* Play Sound Button (fixed for small screen tap targets) */}
-          <button
-            onClick={onPlaySound}
-            className="flex items-center justify-center text-xl sm:text-2xl text-red-600 dark:text-blue-300 hover:text-blue-800 rounded-full p-2 min-w-[44px] min-h-[44px] transition-all active:scale-95 focus:outline-none"
-            aria-label="Play Sound"
-          >
-            <FaVolumeUp />
-          </button>
-
-          {/* Search Button */}
-          <button
+        {/* Input field with search icon */}
+        <div className="flex items-center flex-grow relative">
+          <input
+            ref={inputRef}
+            type="text"
+            className="flex-grow text-base sm:text-lg px-3 py-2 text-gray-800 dark:text-white bg-transparent outline-none"
+            placeholder="Type a word..."
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
+          {/* Search Icon (placed inside the input field) */}
+          <FaSearch
+            className="absolute right-3 text-gray-500 dark:text-white sm:text-lg cursor-pointer"
             onClick={() => {
               if (input.trim()) {
                 onSearch(input.trim());
@@ -112,15 +97,23 @@ const SearchBar = ({
                 setSuggestions([]);
               }
             }}
-            disabled={isLoading}
-            className="flex items-center justify-center text-md sm:text-base bg-yellow-400 hover:bg-yellow-500 text-slate-700 font-semibold rounded-full px-3 py-2 min-w-[44px] transition-all active:scale-95"
             aria-label="Search"
+          />
+        </div>
+
+        {/* Play Sound Button */}
+        <div className="ml-2">
+          <button
+            onClick={onPlaySound}
+            className="flex items-center justify-center text-xl sm:text-2xl text-red-600 dark:text-blue-300 hover:text-blue-800 rounded-full p-2 min-w-[44px] min-h-[44px] transition-all active:scale-95 focus:outline-none"
+            aria-label="Play Sound"
           >
-            <FaSearch />
+            <FaVolumeUp />
           </button>
         </div>
       </div>
 
+      {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <ul className="absolute left-0 right-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-b-xl mt-1 max-h-48 overflow-y-auto z-20">
           {suggestions.map((s, index) => (
