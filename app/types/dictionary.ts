@@ -1,6 +1,7 @@
 export interface Phonetic {
   text?: string;
   audio?: string;
+  region?: 'USA' | 'UK' | 'Australia';
   sourceUrl?: string;
   license?: {
     name: string;

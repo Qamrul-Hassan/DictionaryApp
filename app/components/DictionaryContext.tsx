@@ -1,5 +1,7 @@
+'use client';
+
 import React, { createContext, useReducer, useContext, ReactNode } from 'react';
-import { DictionaryResponse } from '../types/dictionary'; // your shared interface
+import { DictionaryResponse } from '../types/dictionary';
 
 type State = {
   data: DictionaryResponse | null;
@@ -36,7 +38,9 @@ const DictionaryContext = createContext<{
   dispatch: React.Dispatch<Action>;
 }>({
   state: initialState,
-  dispatch: () => null,
+  dispatch: () => {
+    throw new Error('Dispatch used outside of DictionaryProvider');
+  },
 });
 
 export const useDictionary = () => useContext(DictionaryContext);

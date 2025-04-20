@@ -38,10 +38,7 @@ const SearchBar = ({
       fetch(`https://api.datamuse.com/sug?s=${value}`)
         .then((res) => res.json())
         .then((data) => {
-          interface Suggestion {
-            word: string;
-          }
-          const words = data.map((item: Suggestion) => item.word);
+          const words = data.map((item: { word: string }) => item.word);
           setSuggestions(words);
         })
         .catch(() => setSuggestions(['No suggestions']));
@@ -84,7 +81,7 @@ const SearchBar = ({
   };
 
   return (
-    <div className="w-full max-w-xl relative">
+    <div className="w-full max-w-xl relative z-10">
       <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-full shadow-md overflow-hidden px-3 py-2 sm:px-4 sm:py-3">
         <input
           ref={inputRef}
@@ -95,16 +92,19 @@ const SearchBar = ({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
         />
-        {/* Adjusted icons for small screens */}
-        <div className="flex items-center gap-2 sm:gap-1 ml-1 sm:ml-2">
+
+        <div className="flex items-center gap-2 ml-2">
+          {/* Play Sound Button (fixed for small screen tap targets) */}
           <button
-            className="flex items-center justify-center text-base sm:text-xl text-red-600 dark:text-blue-300 hover:text-blue-800 rounded-full"
             onClick={onPlaySound}
+            className="flex items-center justify-center text-xl sm:text-2xl text-red-600 dark:text-blue-300 hover:text-blue-800 rounded-full p-2 min-w-[44px] min-h-[44px] transition-all active:scale-95 focus:outline-none"
+            aria-label="Play Sound"
           >
             <FaVolumeUp />
           </button>
+
+          {/* Search Button */}
           <button
-            className="flex items-center justify-center text-md sm:text-base bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-2 sm:px-3 py-1.5 sm:py-2"
             onClick={() => {
               if (input.trim()) {
                 onSearch(input.trim());
@@ -113,6 +113,8 @@ const SearchBar = ({
               }
             }}
             disabled={isLoading}
+            className="flex items-center justify-center text-md sm:text-base bg-yellow-400 hover:bg-yellow-500 text-slate-700 font-semibold rounded-full px-3 py-2 min-w-[44px] transition-all active:scale-95"
+            aria-label="Search"
           >
             <FaSearch />
           </button>
@@ -120,7 +122,7 @@ const SearchBar = ({
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute left-0 right-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-b-xl mt-1 max-h-48 overflow-y-auto z-10">
+        <ul className="absolute left-0 right-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-b-xl mt-1 max-h-48 overflow-y-auto z-20">
           {suggestions.map((s, index) => (
             <li
               key={index}
