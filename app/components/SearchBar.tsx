@@ -78,15 +78,19 @@ const SearchBar = ({
       <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-full shadow-md overflow-hidden px-3 py-2 sm:px-4 sm:py-3">
         {/* Input field with search icon */}
         <div className="flex items-center flex-grow relative">
-          <input
-            ref={inputRef}
-            type="text"
-            className="flex-grow text-base sm:text-lg px-3 py-2 text-gray-800 dark:text-white bg-transparent outline-none"
-            placeholder="Type a word..."
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          />
+        <input
+  id="search-word"
+  name="search-word"
+  ref={inputRef}
+  type="text"
+  className="flex-grow text-base sm:text-lg px-3 py-2 text-gray-800 dark:text-white bg-transparent outline-none focus:ring-0 focus:outline-none"
+  placeholder="Type a word..."
+  value={input}
+  onChange={handleInputChange}
+  onKeyDown={handleKeyDown}
+  autoComplete="off"
+/>
+
           {/* Search Icon (placed inside the input field) */}
           <FaSearch
             className="absolute right-3 text-gray-500 dark:text-white sm:text-lg cursor-pointer"
