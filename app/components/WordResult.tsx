@@ -85,7 +85,7 @@ const WordResult: React.FC<WordResultProps> = ({ term }) => {
               phon.audio ? (
                 <button
                   key={i}
-                  onClick={() => playSound(phon.audio!)}
+                  onClick={() => phon.audio && playSound(phon.audio)}
                   className="flex items-center bg-white dark:bg-gray-200 text-blue-600 dark:text-blue-500 hover:text-blue-800 rounded-full px-3 py-2 min-w-[44px] min-h-[44px] text-sm shadow-md transition active:scale-95"
                   aria-label={`Play ${phon.region || 'Phonetic'} pronunciation`}
                 >

@@ -4,14 +4,12 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import SearchBar from './components/SearchBar';
 import WordResult from './components/WordResult';
 import { motion } from 'framer-motion';
+import { DictionaryProvider, useDictionary } from './components/DictionaryContext';
 
-export default function Page() {
+function DictionaryPageContent() {
+  const { state, dispatch } = useDictionary();
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [term, setTerm] = useState('');
-  const [definition, setDefinition] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const resultRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToResult = useCallback(() => {
@@ -70,9 +68,8 @@ export default function Page() {
     if (!word.trim()) return;
 
     setIsLoading(true);
-    setError(null);
-    setTerm(word);
-    setDefinition(null);
+    dispatch({ type: 'FETCH_START' });
+    dispatch({ type: 'SET_CURRENT_WORD', payload: word });
     setSuggestions([]);
 
     try {
@@ -80,25 +77,16 @@ export default function Page() {
       if (!res.ok) throw new Error(res.status === 404 ? 'Word not found' : 'API error');
 
       const data = await res.json();
-      const firstResult = data[0];
-
-      setDefinition(firstResult.meanings?.[0]?.definitions?.[0]?.definition || 'Definition not available');
-
-      const audioUrl = firstResult.phonetics?.find((p: { audio?: string }) => p.audio)?.audio;
-      if (audioUrl) audioRef.current = new Audio(audioUrl);
-
+      dispatch({ type: 'FETCH_SUCCESS', payload: data });
       scrollToResult();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      dispatch({ type: 'FETCH_ERROR', payload: errorMessage });
       setSuggestions(['Try another word']);
     } finally {
       setIsLoading(false);
     }
-  }, [scrollToResult]);
-
-  const playSound = useCallback(() => {
-    audioRef.current?.play().catch(() => setError('Could not play pronunciation'));
-  }, []);
+  }, [dispatch, scrollToResult]);
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-600 dark:from-indigo-900 dark:to-indigo-800 p-6 relative overflow-hidden">
@@ -120,31 +108,30 @@ export default function Page() {
         <SearchBar
           onSearch={fetchDefinition}
           suggestions={suggestions}
-          onPlaySound={playSound}
           isLoading={isLoading}
           setSuggestions={setSuggestions}
         />
       </div>
 
       {/* Loading State */}
-      {isLoading && (
+      {state.loading && (
         <div className="mt-6 p-4 text-blue-700 dark:text-blue-300 z-10 relative">
           Loading...
         </div>
       )}
 
       {/* Error State */}
-      {error && (
+      {state.error && (
         <div className="mt-6 p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg z-10 relative">
-          {error}
+          {state.error}
         </div>
       )}
 
       {/* Word Result Info */}
-      {term && !isLoading && <WordResult term={term} />}
+      {state.currentWord && !state.loading && <WordResult term={state.currentWord} />}
 
       {/* Definition */}
-      {definition && !error && (
+      {state.data?.[0]?.meanings?.[0]?.definitions?.[0]?.definition && !state.error && (
         <motion.div
           ref={resultRef}
           className="bg-white dark:bg-gray-700 p-6 rounded-xl shadow-xl mt-6 max-w-xl text-center text-lg z-10 relative w-full sm:w-11/12 md:w-3/4 lg:w-1/2"
@@ -152,9 +139,17 @@ export default function Page() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          {definition}
+          {state.data[0].meanings[0].definitions[0].definition}
         </motion.div>
       )}
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <DictionaryProvider>
+      <DictionaryPageContent />
+    </DictionaryProvider>
   );
 }
