@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { FaVolumeUp } from 'react-icons/fa';
 
 interface Phonetic {
@@ -55,10 +54,12 @@ const WordResult: React.FC<WordResultProps> = ({ term }) => {
 
     const fetchData = async () => {
       try {
-        const response = await axios.get<DictionaryEntry[]>(
-          `https://api.dictionaryapi.dev/api/v2/entries/en/${debouncedTerm}`
-        );
-        setEntries(response.data);
+        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${debouncedTerm}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch');
+        }
+        const data: DictionaryEntry[] = await res.json();
+        setEntries(data);
         setError(null);
       } catch {
         setEntries([]);
