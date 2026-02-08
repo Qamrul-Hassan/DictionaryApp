@@ -38,13 +38,15 @@ function DictionaryPageContent() {
   const { state, dispatch } = useDictionary();
   const resultRef = useRef<HTMLElement | null>(null);
   const hasResult = Boolean(state.data?.length);
-  const [now, setNow] = useState(new Date());
-  const localTime = new Intl.DateTimeFormat(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZoneName: 'short',
-  }).format(now);
+  const [now, setNow] = useState<Date | null>(null);
+  const localTime = now
+    ? new Intl.DateTimeFormat(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short',
+      }).format(now)
+    : '--:--:--';
 
   useEffect(() => {
     if (state.data?.length && !state.loading) {
@@ -53,6 +55,7 @@ function DictionaryPageContent() {
   }, [state.data, state.loading]);
 
   useEffect(() => {
+    setNow(new Date());
     const timerId = window.setInterval(() => {
       setNow(new Date());
     }, 1000);
@@ -122,10 +125,10 @@ function DictionaryPageContent() {
           hasResult ? '' : 'flex min-h-[80vh] flex-col justify-center'
         }`}
       >
+        <p className="clock-chip absolute left-1/2 top-0 z-20 inline-flex -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/55 px-3 py-1 text-[10px] font-semibold tracking-[0.12em] text-slate-700 sm:text-xs">
+          {localTime}
+        </p>
         <header className="glass-panel accent-glow relative mb-6 rounded-3xl border border-white/45 px-5 py-6 text-center shadow-[0_16px_44px_rgba(15,23,42,0.12)] sm:mb-8 sm:px-8 sm:py-8">
-          <p className="glass-panel absolute right-3 top-3 rounded-full border border-white/55 px-3 py-1 text-[10px] font-semibold tracking-[0.12em] text-slate-700 sm:right-4 sm:top-4 sm:text-xs">
-            {localTime}
-          </p>
           <motion.p
             className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-700"
             initial={{ opacity: 0, y: -8 }}
