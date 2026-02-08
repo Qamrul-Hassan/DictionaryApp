@@ -1,45 +1,85 @@
-import { useState, useRef, KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { FaSearch, FaVolumeUp } from 'react-icons/fa';
 import { useDictionary } from './DictionaryContext';
 
 interface SearchBarProps {
   onSearch: (word: string) => Promise<void>;
-  suggestions: string[];
   isLoading: boolean;
-  setSuggestions: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const SearchBar = ({
-  onSearch,
-  suggestions,
-  isLoading,
-  setSuggestions,
-}: SearchBarProps) => {
-  const { playPronunciation } = useDictionary();
+const SearchBar = ({ onSearch, isLoading }: SearchBarProps) => {
+  const { playPronunciation, dispatch } = useDictionary();
   const [input, setInput] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const inputId = useId();
+  const listId = `${inputId}-listbox`;
+  const activeDescendantId =
+    selectedIndex >= 0 ? `${inputId}-option-${selectedIndex}` : undefined;
+  const requestRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInput(value);
-    setShowSuggestions(true);
-
-    if (value.length > 0) {
-      fetch(`https://api.datamuse.com/sug?s=${value}`)
-        .then((res) => res.json())
-        .then((data) => {
-          const words = data.map((item: { word: string }) => item.word);
-          setSuggestions(words);
-        })
-        .catch(() => setSuggestions([]));
-    } else {
-      setSuggestions([]);
+  useEffect(() => {
+    if (!input.trim()) {
+      dispatch({ type: 'CLEAR_RESULTS' });
     }
-  };
+  }, [dispatch, input]);
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const searchTerm = input.trim();
+    if (searchTerm.length < 2) {
+      setShowSuggestions(false);
+      setSuggestions([]);
+      setSelectedIndex(-1);
+      requestRef.current?.abort();
+      return;
+    }
+
+    setShowSuggestions(isInputFocused);
+    const controller = new AbortController();
+    requestRef.current?.abort();
+    requestRef.current = controller;
+
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://api.datamuse.com/sug?s=${encodeURIComponent(searchTerm)}`,
+          { signal: controller.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error('Suggestion request failed');
+        }
+
+        const data: { word: string }[] = await response.json();
+        setSuggestions(data.map((item) => item.word).slice(0, 7));
+      } catch {
+        if (!controller.signal.aborted) {
+          setSuggestions([]);
+        }
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [input, isInputFocused]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!suggestions.length) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const word = input.trim();
+        if (word) {
+          void handleSearch(word);
+        }
+      }
+      return;
+    }
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
@@ -52,7 +92,9 @@ const SearchBar = ({
       case 'Enter':
         e.preventDefault();
         const word = selectedIndex >= 0 ? suggestions[selectedIndex] : input.trim();
-        if (word) handleSearch(word);
+        if (word) {
+          void handleSearch(word);
+        }
         break;
       case 'Escape':
         setShowSuggestions(false);
@@ -62,70 +104,121 @@ const SearchBar = ({
   };
 
   const handleSearch = async (word: string) => {
+    requestRef.current?.abort();
     setInput(word);
     setShowSuggestions(false);
+    setIsInputFocused(false);
     setSelectedIndex(-1);
     setSuggestions([]);
+    inputRef.current?.blur();
     await onSearch(word);
   };
 
-  const handleSuggestionClick = (word: string) => {
-    handleSearch(word);
-  };
-
   return (
-    <div className="w-full max-w-xl relative z-10">
-      <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-full shadow-md overflow-hidden px-3 py-2 sm:px-4 sm:py-3">
-        <div className="flex items-center flex-grow relative">
-          <input
-            id="search-word"
-            name="search-word"
-            ref={inputRef}
-            type="text"
-            className="flex-grow text-base sm:text-lg px-3 py-2 text-gray-800 dark:text-white bg-transparent outline-none focus:ring-0 focus:outline-none"
-            placeholder="Type a word..."
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            autoComplete="off"
-            disabled={isLoading}
-          />
-          <FaSearch
-            className="absolute right-3 text-gray-500 dark:text-white sm:text-lg cursor-pointer"
-            onClick={() => input.trim() && handleSearch(input.trim())}
-            aria-label="Search"
-          />
-        </div>
+    <div className="relative z-40 mx-auto w-full max-w-xl">
+      <form
+        className="search-shell glass-panel accent-glow rounded-2xl border border-white/60 bg-white/70 p-2 shadow-lg transition-shadow duration-300"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const word = input.trim();
+          if (word) {
+            void handleSearch(word);
+          }
+        }}
+      >
+        <label htmlFor={inputId} className="sr-only">
+          Search for a word
+        </label>
+        <div className="flex items-center gap-1">
+          <div className="relative flex-1">
+            <input
+              ref={inputRef}
+              id={inputId}
+              name="search-word"
+              type="text"
+              className="min-h-11 w-full rounded-xl border border-transparent bg-transparent px-3 text-base text-slate-900 outline-none transition focus-visible:border-sky-400 sm:text-lg"
+              placeholder="Search a word"
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setSelectedIndex(-1);
+              }}
+              onFocus={() => {
+                setIsInputFocused(true);
+                if (suggestions.length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
+              onBlur={() => {
+                setIsInputFocused(false);
+                setShowSuggestions(false);
+                setSelectedIndex(-1);
+              }}
+              onKeyDown={handleKeyDown}
+              autoComplete="off"
+              disabled={isLoading}
+              role="combobox"
+              aria-expanded={showSuggestions && suggestions.length > 0}
+              aria-controls={listId}
+              aria-autocomplete="list"
+              aria-activedescendant={activeDescendantId}
+            />
+          </div>
 
-        <div className="ml-2">
           <button
+            type="submit"
+            disabled={!input.trim() || isLoading}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-600 transition hover:bg-cyan-100/70 hover:text-cyan-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Search"
+          >
+            <FaSearch aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
             onClick={playPronunciation}
             disabled={!input.trim() || isLoading}
-            className="flex items-center justify-center text-xl sm:text-2xl text-red-600 dark:text-blue-300 hover:text-blue-800 rounded-full p-2 min-w-[44px] min-h-[44px] transition-all active:scale-95 focus:outline-none disabled:opacity-50"
-            aria-label="Play Sound"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-600 transition hover:bg-indigo-100/70 hover:text-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Play pronunciation"
           >
-            <FaVolumeUp />
+            <FaVolumeUp aria-hidden="true" />
           </button>
         </div>
-      </div>
+      </form>
 
-      {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute left-0 right-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-b-xl mt-1 max-h-48 overflow-y-auto z-20">
-          {suggestions.map((suggestion, index) => (
-            <li
-              key={index}
-              className={`px-4 py-2 cursor-pointer ${
-                index === selectedIndex
-                  ? 'bg-blue-100 dark:bg-blue-800 text-blue-900 dark:text-white'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-              onClick={() => handleSuggestionClick(suggestion)}
-            >
-              {suggestion}
-            </li>
-          ))}
+      {showSuggestions && suggestions.length > 0 ? (
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label="Word suggestions"
+          className="glass-panel absolute left-0 right-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-xl border border-white/55 bg-white/78 p-1 shadow-2xl"
+        >
+          {suggestions.map((suggestion, index) => {
+            const isActive = index === selectedIndex;
+            return (
+              <li key={`${suggestion}-${index}`} role="presentation">
+                <button
+                  id={`${inputId}-option-${index}`}
+                  type="button"
+                  role="option"
+                  aria-selected={isActive}
+                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition sm:text-base ${
+                    isActive
+                      ? 'bg-cyan-100 text-cyan-900 shadow-[0_0_0_1px_rgba(8,145,178,0.35),0_0_20px_rgba(34,211,238,0.45)]'
+                      : 'text-slate-700 hover:bg-cyan-50 hover:text-cyan-900 hover:shadow-[0_0_0_1px_rgba(14,116,144,0.25),0_0_18px_rgba(34,211,238,0.38)]'
+                  }`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    void handleSearch(suggestion);
+                  }}
+                >
+                  {suggestion}
+                </button>
+              </li>
+            );
+          })}
         </ul>
-      )}
+      ) : null}
     </div>
   );
 };

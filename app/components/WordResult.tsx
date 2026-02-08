@@ -1,31 +1,9 @@
-import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { FaVolumeUp } from 'react-icons/fa';
-
-interface Phonetic {
-  text?: string;
-  audio?: string;
-  region?: 'USA' | 'UK' | 'Australia';
-}
-
-interface DefinitionDetail {
-  definition: string;
-  example?: string;
-}
-
-interface Meaning {
-  partOfSpeech: string;
-  definitions: DefinitionDetail[];
-}
-
-interface DictionaryEntry {
-  word: string;
-  phonetic?: string;
-  phonetics?: Phonetic[];
-  meanings: Meaning[];
-}
+import { DictionaryResponse } from '../types/dictionary';
 
 interface WordResultProps {
-  term: string;
+  entries: DictionaryResponse[];
 }
 
 const playSound = (url: string) => {
@@ -35,97 +13,79 @@ const playSound = (url: string) => {
   });
 };
 
-const WordResult: React.FC<WordResultProps> = ({ term }) => {
-  const [debouncedTerm, setDebouncedTerm] = useState(term);
-  const [entries, setEntries] = useState<DictionaryEntry[]>([]);
-  const [error, setError] = useState<string | null>(null);
+const WordResult = ({ entries }: WordResultProps) => {
+  if (!entries.length) return null;
 
-  // Debounce input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedTerm(term);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [term]);
-
-  // Fetch API
-  useEffect(() => {
-    if (!debouncedTerm.trim() || debouncedTerm.trim().length < 2) return;
-
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${debouncedTerm}`);
-        if (!res.ok) {
-          throw new Error('Failed to fetch');
-        }
-        const data: DictionaryEntry[] = await res.json();
-        setEntries(data);
-        setError(null);
-      } catch {
-        setEntries([]);
-        setError("Sorry, we couldn't find that word.");
-      }
-    };
-
-    fetchData();
-  }, [debouncedTerm]);
+  const firstEntry = entries[0];
+  const phoneticsWithAudio =
+    firstEntry.phonetics?.filter((phonetic) => Boolean(phonetic.audio)) ?? [];
 
   return (
-    <div className="word-result-container mt-8 relative z-10">
-      {error && <p className="text-red-500 text-center">{error}</p>}
+    <motion.section
+      aria-label="Dictionary result"
+      className="glass-panel accent-glow relative z-10 mt-6 w-full max-w-3xl rounded-2xl border border-white/55 bg-white/72 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.16)] sm:p-6"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
+    >
+      <header className="mb-5 border-b border-slate-200/80 pb-4">
+        <h2 className="text-3xl font-bold capitalize tracking-tight text-slate-900 sm:text-4xl">
+          <span className="accent-title">{firstEntry.word}</span>
+        </h2>
+        {firstEntry.phonetic ? (
+          <p className="mt-1 text-sm text-slate-600">{firstEntry.phonetic}</p>
+        ) : null}
+      </header>
 
-      {entries.length > 0 && (
-        <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-xl shadow bg-amber-50 dark:bg-gray-800 max-w-2xl mx-auto">
-          <h2 className="text-3xl font-bold text-blue-900 dark:text-blue-200 mb-3 capitalize">
-            {entries[0].word}
-          </h2>
-
-          {/* Phonetics Section */}
-          <div className="flex flex-wrap gap-3 mb-4">
-            {entries[0].phonetics?.map((phon, i) =>
-              phon.audio ? (
-                <button
-                  key={i}
-                  onClick={() => phon.audio && playSound(phon.audio)}
-                  className="flex items-center bg-white dark:bg-gray-200 text-blue-600 dark:text-blue-500 hover:text-blue-800 rounded-full px-3 py-2 min-w-[44px] min-h-[44px] text-sm shadow-md transition active:scale-95"
-                  aria-label={`Play ${phon.region || 'Phonetic'} pronunciation`}
-                >
-                  <FaVolumeUp className="mr-2" />
-                  {phon.region || 'Play'}
-                  {phon.text ? ` (${phon.text})` : ''}
-                </button>
-              ) : null
-            )}
+      {phoneticsWithAudio.length > 0 ? (
+        <section aria-label="Pronunciations" className="mb-6">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
+            Pronunciation
+          </h3>
+          <div className="flex flex-wrap gap-2.5">
+            {phoneticsWithAudio.map((phonetic, index) => (
+              <button
+                key={`${phonetic.audio}-${index}`}
+                type="button"
+                onClick={() => phonetic.audio && playSound(phonetic.audio)}
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:border-sky-300 hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50"
+                aria-label={`Play pronunciation ${phonetic.text ?? ''}`.trim()}
+              >
+                <FaVolumeUp aria-hidden="true" />
+                <span>{phonetic.text || `Audio ${index + 1}`}</span>
+              </button>
+            ))}
           </div>
+        </section>
+      ) : null}
 
-          {/* Meanings Section */}
-          {entries.map((entry, entryIndex) => (
-            <div key={entryIndex}>
-              {entry.meanings.map((meaning, meaningIndex) => (
-                <div key={`${entryIndex}-${meaningIndex}`} className="mb-4">
-                  <p className="text-xl font-semibold text-purple-700 dark:text-purple-300 italic">
-                    {meaning.partOfSpeech}
-                  </p>
-
-                  <ul className="list-disc ml-6 mt-2 space-y-2">
-                    {meaning.definitions.map((def, defIndex) => (
-                      <li key={defIndex} className="text-gray-800 dark:text-gray-300">
-                        {def.definition}
-                        {def.example && (
-                          <p className="text-sm italic text-gray-500 dark:text-gray-400 mt-1">
-                            Example: {def.example}
-                          </p>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      <section aria-label="Word meanings" className="space-y-5">
+        {entries.map((entry, entryIndex) =>
+          entry.meanings?.map((meaning, meaningIndex) => (
+            <article
+              key={`${entryIndex}-${meaning.partOfSpeech}-${meaningIndex}`}
+              className="glass-panel accent-chip rounded-xl p-4 shadow-[0_10px_30px_rgba(15,23,42,0.1)] sm:p-5"
+            >
+              <h3 className="text-lg font-semibold italic text-slate-800">
+                {meaning.partOfSpeech}
+              </h3>
+              <ol className="mt-3 list-decimal space-y-2 pl-6 marker:text-slate-500">
+                {meaning.definitions.map((definition, definitionIndex) => (
+                  <li key={`${meaning.partOfSpeech}-${definitionIndex}`} className="text-slate-700">
+                    <p>{definition.definition}</p>
+                    {definition.example ? (
+                      <p className="mt-1 text-sm italic text-slate-500">
+                        Example: {definition.example}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </article>
+          ))
+        )}
+      </section>
+    </motion.section>
   );
 };
 

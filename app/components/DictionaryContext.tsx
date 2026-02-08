@@ -1,36 +1,10 @@
 import React, { createContext, useReducer, useContext, ReactNode } from 'react';
+import { DictionaryResponse } from '../types/dictionary';
 
-interface Phonetic {
-  audio?: string;
-  text?: string;
-}
-
-interface Definition {
-  definition: string;
-  example?: string;
-  synonyms?: string[];
-  antonyms?: string[];
-}
-
-interface Meaning {
-  partOfSpeech: string;
-  definitions: Definition[];
-  synonyms?: string[];
-  antonyms?: string[];
-}
-
-export interface DictionaryEntry {
-  word: string;
-  phonetic?: string;
-  phonetics: Phonetic[];
-  origin?: string;
-  meanings: Meaning[];
-}
-
-type DictionaryResponse = DictionaryEntry[];
+type DictionaryEntries = DictionaryResponse[];
 
 type State = {
-  data: DictionaryResponse | null;
+  data: DictionaryEntries | null;
   loading: boolean;
   error: string | null;
   currentWord: string | null;
@@ -39,8 +13,9 @@ type State = {
 
 type Action =
   | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; payload: DictionaryResponse }
+  | { type: 'FETCH_SUCCESS'; payload: DictionaryEntries }
   | { type: 'FETCH_ERROR'; payload: string }
+  | { type: 'CLEAR_RESULTS' }
   | { type: 'SET_CURRENT_WORD'; payload: string }
   | { type: 'SET_PRONUNCIATION'; payload: string };
 
@@ -57,16 +32,26 @@ function dictionaryReducer(state: State, action: Action): State {
     case 'FETCH_START':
       return { ...state, loading: true, error: null };
     case 'FETCH_SUCCESS':
-      const firstAudio = action.payload[0]?.phonetics?.find(p => p.audio)?.audio;
+      const firstAudio = action.payload[0]?.phonetics?.find((p) => p.audio)?.audio;
       return {
         ...state,
         loading: false,
+        error: null,
         data: action.payload,
         pronunciation: firstAudio || null,
         currentWord: action.payload[0]?.word || state.currentWord,
       };
     case 'FETCH_ERROR':
-      return { ...state, loading: false, error: action.payload };
+      return { ...state, loading: false, error: action.payload, data: null, pronunciation: null };
+    case 'CLEAR_RESULTS':
+      return {
+        ...state,
+        data: null,
+        error: null,
+        loading: false,
+        currentWord: null,
+        pronunciation: null,
+      };
     case 'SET_CURRENT_WORD':
       return { ...state, currentWord: action.payload };
     case 'SET_PRONUNCIATION':
@@ -102,7 +87,7 @@ export const DictionaryProvider = ({ children }: { children: ReactNode }) => {
 
     if (state.pronunciation) {
       const audio = new Audio(state.pronunciation);
-      audio.play().catch(e => console.error('Audio playback failed:', e));
+      audio.play().catch((e) => console.error('Audio playback failed:', e));
     } else {
       const utterance = new SpeechSynthesisUtterance(state.currentWord);
       utterance.lang = 'en-US';
