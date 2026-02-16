@@ -170,6 +170,59 @@ body {
     linear-gradient(160deg, rgb(248 250 252), rgb(238 242 255));
 }
 
+:root.dark {
+  --background: 2 6 23;
+  --foreground: 226 232 240;
+}
+
+.dark {
+  .glass-panel {
+    background-image: linear-gradient(
+      145deg,
+      rgb(15 23 42 / 62%),
+      rgb(15 23 42 / 34%)
+    );
+  }
+
+  .accent-glow {
+    box-shadow:
+      0 16px 42px rgb(2 6 23 / 62%),
+      0 0 0 1px rgb(148 163 184 / 22%) inset;
+  }
+
+  .accent-chip {
+    background-image: linear-gradient(
+      120deg,
+      rgb(var(--accent-cyan) / 14%),
+      rgb(var(--accent-indigo) / 18%),
+      rgb(var(--accent-rose) / 12%)
+    );
+    border: 1px solid rgb(148 163 184 / 24%);
+  }
+
+  .bg-app {
+    background:
+      radial-gradient(circle at 14% 18%, rgba(14, 116, 144, 0.24), transparent 32%),
+      radial-gradient(circle at 84% 14%, rgba(67, 56, 202, 0.24), transparent 34%),
+      linear-gradient(145deg, rgb(2 6 23), rgb(15 23 42), rgb(30 41 59));
+  }
+
+  .floating-word {
+    color: rgb(186 230 253 / 60%);
+    text-shadow:
+      0 0 22px rgb(56 189 248 / 58%),
+      0 0 40px rgb(99 102 241 / 40%);
+  }
+
+  .floating-letter {
+    color: rgb(255 255 255 / 2%);
+    -webkit-text-stroke: 1px rgb(56 189 248 / 24%);
+    text-shadow:
+      0 0 8px rgb(56 189 248 / 16%),
+      0 0 16px rgb(99 102 241 / 12%);
+  }
+}
+
 .decor-orb {
   position: absolute;
   border-radius: 9999px;
@@ -351,6 +404,86 @@ body {
   }
 }
 
+.floating-letter-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.floating-letter {
+  position: absolute;
+  display: inline-block;
+  font-weight: 900;
+  line-height: 1;
+  color: rgb(255 255 255 / 5%);
+  -webkit-text-stroke: 1px rgb(125 211 252 / 42%);
+  text-shadow:
+    0 0 8px rgb(56 189 248 / 24%),
+    0 0 18px rgb(99 102 241 / 16%);
+  animation: letter-drift ease-in-out infinite;
+}
+
+@keyframes letter-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate3d(0, -12px, 0) scale(1.03);
+    opacity: 0.62;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+    opacity: 0.35;
+  }
+}
+
+.footer-icon {
+  animation: icon-float 3.2s ease-in-out infinite;
+  box-shadow:
+    0 6px 16px rgb(15 23 42 / 12%),
+    0 0 0 1px rgb(255 255 255 / 55%) inset;
+}
+
+.footer-icon:hover {
+  transform: translateY(-3px) scale(1.08);
+  box-shadow:
+    0 10px 24px rgb(2 132 199 / 28%),
+    0 0 0 1px rgb(125 211 252 / 65%) inset;
+}
+
+@keyframes icon-float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.theme-toggle-icon {
+  font-weight: 900;
+  animation: theme-icon-pulse 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgb(34 211 238 / 42%));
+}
+
+@keyframes theme-icon-pulse {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.18) rotate(8deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
 @media (max-width: 640px) {
   .decor-orb {
     opacity: 0.35;
@@ -367,6 +500,11 @@ body {
     letter-spacing: 0.06em;
     color: rgb(15 23 42 / 34%);
   }
+
+  .floating-letter {
+    -webkit-text-stroke: 0.9px rgb(125 211 252 / 34%);
+    opacity: 0.25;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -374,6 +512,9 @@ body {
   .floating-ring,
   .floating-spark,
   .floating-word,
+  .floating-letter,
+  .footer-icon,
+  .theme-toggle-icon,
   .clock-chip,
   .search-shell::before {
     animation: none;

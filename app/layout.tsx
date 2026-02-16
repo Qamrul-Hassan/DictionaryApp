@@ -5,6 +5,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Smart Dictionary | Find Definitions Instantly",
   description: "Advanced dictionary application with audio pronunciation and examples",
+  icons: {
+    icon: "/dic-logo.png",
+    shortcut: "/dic-logo.png",
+    apple: "/dic-logo.png",
+  },
   metadataBase: new URL(process.env.SITE_URL || "https://dictionary-app.example.com"),
   alternates: {
     canonical: "/",
