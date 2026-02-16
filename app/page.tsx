@@ -66,7 +66,7 @@ const AMBIENT_BG_LETTERS = Array.from({ length: 120 }, (_, index) => {
 
 function DictionaryPageContent() {
   const { state, dispatch } = useDictionary();
-  const resultRef = useRef<HTMLElement | null>(null);
+  const resultRef = useRef<HTMLDivElement | null>(null);
   const [now, setNow] = useState<Date | null>(null);
   const [showAmbientLetters, setShowAmbientLetters] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -307,7 +307,7 @@ function DictionaryPageContent() {
           <SearchBar onSearch={fetchDefinition} isLoading={state.loading} />
         </div>
 
-        <section aria-live="polite" className="mt-4 min-h-8">
+        <div aria-live="polite" className="mt-4 min-h-8">
           {state.loading ? (
             <motion.p
               className="text-center text-sm font-medium text-slate-700 dark:text-slate-300"
@@ -327,11 +327,11 @@ function DictionaryPageContent() {
               {state.error}
             </motion.p>
           ) : null}
-        </section>
+        </div>
 
-        <section ref={resultRef}>
+        <div ref={resultRef}>
           {state.data?.length ? <WordResult entries={state.data} /> : null}
-        </section>
+        </div>
       </section>
 
       <Footer />

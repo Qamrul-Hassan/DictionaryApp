@@ -14,10 +14,14 @@ const SearchBar = ({ onSearch, isLoading }: SearchBarProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isInputFocused, setIsInputFocused] = useState(false);
-  const inputId = useId();
+  const reactId = useId();
+  const inputId = `search-${reactId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const listId = `${inputId}-listbox`;
+  const hasVisibleSuggestions = showSuggestions && suggestions.length > 0;
   const activeDescendantId =
-    selectedIndex >= 0 ? `${inputId}-option-${selectedIndex}` : undefined;
+    hasVisibleSuggestions && selectedIndex >= 0
+      ? `${inputId}-option-${selectedIndex}`
+      : undefined;
   const requestRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -158,7 +162,7 @@ const SearchBar = ({ onSearch, isLoading }: SearchBarProps) => {
               autoComplete="off"
               disabled={isLoading}
               role="combobox"
-              aria-expanded={showSuggestions && suggestions.length > 0}
+              aria-expanded={hasVisibleSuggestions}
               aria-controls={listId}
               aria-autocomplete="list"
               aria-activedescendant={activeDescendantId}
@@ -186,39 +190,38 @@ const SearchBar = ({ onSearch, isLoading }: SearchBarProps) => {
         </div>
       </form>
 
-      {showSuggestions && suggestions.length > 0 ? (
-        <ul
-          id={listId}
-          role="listbox"
-          aria-label="Word suggestions"
-          className="glass-panel absolute left-0 right-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-xl border border-white/55 bg-white/78 p-1 shadow-2xl dark:border-slate-600/60 dark:bg-slate-900/85"
-        >
-          {suggestions.map((suggestion, index) => {
-            const isActive = index === selectedIndex;
-            return (
-              <li key={`${suggestion}-${index}`} role="presentation">
-                <button
-                  id={`${inputId}-option-${index}`}
-                  type="button"
-                  role="option"
-                  aria-selected={isActive}
-                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition sm:text-base ${
-                    isActive
-                      ? 'bg-cyan-100 text-cyan-900 shadow-[0_0_0_1px_rgba(8,145,178,0.35),0_0_20px_rgba(34,211,238,0.45)] dark:bg-cyan-500/20 dark:text-cyan-100'
-                      : 'text-slate-700 hover:bg-cyan-50 hover:text-cyan-900 hover:shadow-[0_0_0_1px_rgba(14,116,144,0.25),0_0_18px_rgba(34,211,238,0.38)] dark:text-slate-200 dark:hover:bg-cyan-500/15 dark:hover:text-cyan-100'
-                  }`}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    void handleSearch(suggestion);
-                  }}
-                >
-                  {suggestion}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
+      <ul
+        id={listId}
+        role="listbox"
+        aria-label="Word suggestions"
+        hidden={!hasVisibleSuggestions}
+        className="glass-panel absolute left-0 right-0 z-50 mt-2 max-h-60 overflow-y-auto rounded-xl border border-white/55 bg-white/78 p-1 shadow-2xl dark:border-slate-600/60 dark:bg-slate-900/85"
+      >
+        {suggestions.map((suggestion, index) => {
+          const isActive = index === selectedIndex;
+          return (
+            <li key={`${suggestion}-${index}`} role="presentation">
+              <button
+                id={`${inputId}-option-${index}`}
+                type="button"
+                role="option"
+                aria-selected={isActive}
+                className={`w-full rounded-lg px-3 py-2 text-left text-sm transition sm:text-base ${
+                  isActive
+                    ? 'bg-cyan-100 text-cyan-900 shadow-[0_0_0_1px_rgba(8,145,178,0.35),0_0_20px_rgba(34,211,238,0.45)] dark:bg-cyan-500/20 dark:text-cyan-100'
+                    : 'text-slate-700 hover:bg-cyan-50 hover:text-cyan-900 hover:shadow-[0_0_0_1px_rgba(14,116,144,0.25),0_0_18px_rgba(34,211,238,0.38)] dark:text-slate-200 dark:hover:bg-cyan-500/15 dark:hover:text-cyan-100'
+                }`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  void handleSearch(suggestion);
+                }}
+              >
+                {suggestion}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 };
