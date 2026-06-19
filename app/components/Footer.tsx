@@ -46,10 +46,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-3 border-t border-slate-200/80 pt-2.5 dark:border-slate-600/70">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-300">
-            Copyright {new Date().getFullYear()} Qamrul Hassan Shajal. All rights reserved.
-          </p>
+        <div className="mt-3 border-t border-slate-200/80 pt-2.5 dark:border-slate-600/70 flex flex-col gap-2 items-center justify-center sm:flex-row sm:justify-between text-center text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-300">
+          <p>Copyright {new Date().getFullYear()} Qamrul Hassan Shajal. All rights reserved.</p>
+          <p>Explore tools on <a href="https://costnest.site" target="_blank" rel="noopener noreferrer" className="underline hover:text-sky-500 dark:hover:text-cyan-400 transition-colors">CostNest</a></p>
         </div>
       </div>
     </footer>
